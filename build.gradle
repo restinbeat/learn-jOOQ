@@ -76,6 +76,18 @@ jooq {
 						}
 					}
 
+					// DSL generate strategy
+					/**
+					 * https://www.jooq.org/doc/3.19/manual/code-generation/codegen-advanced/ 참고
+					 * option			default		description
+					 * fluentSetter 	false		pojo나 record 생성시 return 값이 void가 대신 객체 자체를 리턴
+					 * javaTimeTypes	false 		Date, Time, Timestamp 대신 -> LocalDate, LocalTime, LocalDateTIme 리텀
+					 * unsignedTypes	true		jOOQ에서 제공하는 unsigned type 사용 여부 (미사용 추천, database)
+					 * forcedTypes		-			특정 데이터 타입을 DSL에선 강제로 다른타입으로 지정 (eg. INET, JSON -> varchar)
+					 * daos				false		DSL 생성시 일부 편의 기능이 완성되어있는 Dao 자동생성
+					 * pojos			false		DB 테이블에 대응되는 pojo 자동생성
+					 * record			false		DB 테이블에 대응되는 ActiveRecord 자동생성
+					 */
 					generate {
 						daos = true
 						records = true
