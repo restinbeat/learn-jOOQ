@@ -1,7 +1,14 @@
+buildscript {
+	ext {
+		jooqVersion = '3.19.5'
+	}
+}
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.0'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'nu.studer.jooq' version '9.0' // gradle plugin
 }
 
 group = 'com.example'
@@ -18,7 +25,17 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-jooq'
+	// jOOQ 의존성 수동설정
+	implementation ('org.springframework.boot:spring-boot-starter-jooq') {
+		exclude group: 'org.jooq:jooq'
+	}
+	implementation "org.jooq:jooq:${jooqVersion}"
+
+	// jOOQ code  generator
+	jooqGenerator 'com.mysql:mysql-connector-j'
+	jooqGenerator "org.jooq:jooq:${jooqVersion}"
+	jooqGenerator "org.jooq:jooq-meta:${jooqVersion}"
+
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -26,4 +43,61 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+
+String dbUser   = System.properties["db-user"]   ?: "root"
+String dbPasswd = System.properties["db-passwd"] ?: "passwd"
+
+jooq {
+	version = "${jooqVersion}"
+	configurations {
+		sakilaDB {
+			generationTool {
+
+				// DB 접속정보
+				jdbc {
+					driver = 'com.mysql.cj.jdbc.Driver'
+					url = 'jdbc:mysql://localhost:3306'
+					user = "${dbUser}"
+					password = "${dbPasswd}"
+				}
+
+				generator {
+					name = 'org.jooq.codegen.DefaultGenerator'
+
+					database {
+						name = 'org.jooq.meta.mysql.MySQLDatabase'
+
+						schemata {
+							schema {
+								inputSchema = 'sakila'
+							}
+						}
+					}
+
+					generate {
+						daos = true
+						records = true
+//						immutablePojos = true
+						fluentSetters = true
+						javaTimeTypes = true
+						deprecated = false
+					}
+
+					target {
+						directory = 'src/generated'
+					}
+				}
+			}
+		}
+	}
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ["src/main/java", "src/generated"]
+		}
+	}
 }
